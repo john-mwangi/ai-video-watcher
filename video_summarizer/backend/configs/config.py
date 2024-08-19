@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings
 
 ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
 params_path = ROOT_DIR / f"video_summarizer/backend/configs/params.yaml"
+WWW_DIR = ROOT_DIR / "video_summarizer/frontend/www"
 
 video_keys = ["video_id", "video_url", "video_title", "summary"]
 

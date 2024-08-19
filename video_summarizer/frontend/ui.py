@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_tags import st_tags
 
+from video_summarizer.backend.configs.config import WWW_DIR
 from video_summarizer.frontend import utils
 from video_summarizer.frontend.server import format_response, main
 
@@ -10,7 +11,7 @@ st.markdown(css, unsafe_allow_html=True)
 
 st.sidebar.title("ChatGPT Video Summarizer")
 
-st.sidebar.image("./www/Gemini_Generated_Image.jpeg", width=None)
+st.sidebar.image(f"{WWW_DIR}/Gemini_Generated_Image.jpeg", width=None)
 st.sidebar.divider()
 
 sort_by = st.sidebar.selectbox(
