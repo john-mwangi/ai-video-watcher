@@ -25,9 +25,14 @@ jobs:
       - run:
           name: Run tests
           # command: poetry run pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-          command: poetry run pytest --cov --cov-report=html --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
+          command: |
+            echo "Current directory: $(pwd)"
+            poetry run pytest --cov --cov-report=html --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
       - store_test_results:
           path: junit.xml
+      - store_artifacts:
+          path: htmlcov
+          destination: coverage-report
 
   build-docker:
     executor: docker-publisher
