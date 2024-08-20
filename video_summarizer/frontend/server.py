@@ -69,6 +69,11 @@ def card(video_title, video_url, summary):
     return html
 
 
+def clean_titles(k: str):
+    s = k.strip().title().split("_")
+    return " ".join(s)
+
+
 def format_response(
     response, return_html: bool = True
 ) -> tuple[list[str], bool]:
@@ -106,7 +111,8 @@ def format_response(
         for summary in summaries:
             for video in summary:
                 for k, v in video.items():
-                    r = f"**{k.title()}**: {v}\n\n"
+                    s = clean_titles(k)
+                    r = f"**{s}**: {v}\n\n"
                     result.append(r)
             result.append("*----END OF SUMMARY----*\n\n")
         return result, return_html

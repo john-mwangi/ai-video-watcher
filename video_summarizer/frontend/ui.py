@@ -63,5 +63,5 @@ if submit:
         if response.status_code in (401, 403):
             st.error("Incorrect username or password!")
         else:
-            result, is_html = format_response(response, return_html=True)
+            result, is_html = format_response(response, return_html=False)
             st.markdown("".join(result), unsafe_allow_html=is_html)
