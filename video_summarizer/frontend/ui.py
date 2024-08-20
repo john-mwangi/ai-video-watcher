@@ -42,6 +42,15 @@ urls: list[str] = st_tags(label="### YOUTUBE VIDEOS")
 st.write("_Enter a list of YouTube channels or videos._")
 st.divider()
 
+
+@st.dialog(title="Your video")
+def user_action(type_: str, url: str = None):
+    """Create a modal to handle a user action"""
+    st.write(f"You are about to {type_} a video...")
+    if st.button("Ok"):
+        st.rerun()
+
+
 if submit:
     url_validations = [utils.validate_url(url) for url in urls]
     is_valid = False if not url_validations else all(url_validations)
@@ -88,5 +97,9 @@ if submit:
                             help="Chat this video with ChatGPT",
                             key="chat_" + video["video_id"],
                         )
+
+                        # FIXME
+                        if watch_btn:
+                            user_action(type_="watch")
 
                         st.divider()
