@@ -74,9 +74,7 @@ def clean_titles(k: str):
     return " ".join(s)
 
 
-def format_response(
-    response, return_html: bool = True
-) -> tuple[list[str], bool]:
+def format_summary(video, return_html: bool = True) -> tuple[list[str], bool]:
     """Formats the content into a user friendly format.
 
     Args:
@@ -84,35 +82,24 @@ def format_response(
     response: Response from the API/database
     return_html: Whether to return html or markdown
     """
-    result = []
-    content = response.json()
-    summaries = content.get("data").get("summaries")
-
     if return_html:
-        for summary in summaries:
-            for video in summary:
+        video_title = video.get("video_title")
+        video_url = video.get("video_url")
+        video_summary = video.get("summary")
+        video_summary = video_summary.replace("\n", "<br>")
 
-                video_title = video.get("video_title")
-                video_url = video.get("video_url")
-                video_summary = video.get("summary")
-                video_summary = video_summary.replace("\n", "<br>")
-
-                r = card(
-                    video_title=video_title,
-                    video_url=video_url,
-                    summary=video_summary,
-                )
-
-                result.append(r)
-            result.append("<br>")
-        return result, return_html
+        r = card(
+            video_title=video_title,
+            video_url=video_url,
+            summary=video_summary,
+        )
+        return r, return_html
 
     else:
-        for summary in summaries:
-            for video in summary:
-                for k, v in video.items():
-                    s = clean_titles(k)
-                    r = f"**{s}**: {v}\n\n"
-                    result.append(r)
-            result.append("*----END OF SUMMARY----*\n\n")
-        return result, return_html
+        res = []
+        for k, v in video.items():
+            s = clean_titles(k)
+            r = f"**{s}**: {v}\n\n"
+            res.append(r)
+
+    return res, return_html

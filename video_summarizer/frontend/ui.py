@@ -3,7 +3,7 @@ from streamlit_tags import st_tags
 
 from video_summarizer.backend.configs.config import WWW_DIR
 from video_summarizer.frontend import utils
-from video_summarizer.frontend.server import format_response, main
+from video_summarizer.frontend.server import format_summary, main
 
 # https://getbootstrap.com/docs/5.0/getting-started/introduction/
 css = """<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">"""
@@ -63,5 +63,11 @@ if submit:
         if response.status_code in (401, 403):
             st.error("Incorrect username or password!")
         else:
-            result, is_html = format_response(response, return_html=False)
-            st.markdown("".join(result), unsafe_allow_html=is_html)
+            content = response.json()
+            summaries = content.get("data").get("summaries")
+            for summary in summaries:
+                for video in summary:
+                    result, is_html = format_summary(video, return_html=False)
+                    print(result)
+                    st.markdown("".join(result), unsafe_allow_html=is_html)
+                    st.divider()
