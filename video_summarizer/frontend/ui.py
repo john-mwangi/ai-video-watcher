@@ -68,6 +68,25 @@ if submit:
             for summary in summaries:
                 for video in summary:
                     result, is_html = format_summary(video, return_html=False)
-                    print(result)
+
                     st.markdown("".join(result), unsafe_allow_html=is_html)
-                    st.divider()
+
+                    if is_html:
+                        st.write("\n\n")
+
+                    else:
+                        cols = st.columns(8)
+
+                        watch_btn = cols[0].button(
+                            label="Watch",
+                            help="Watch this video on YouTube",
+                            key="watch_" + video["video_id"],
+                        )
+
+                        chat_btn = cols[1].button(
+                            label="Chat",
+                            help="Chat this video with ChatGPT",
+                            key="chat_" + video["video_id"],
+                        )
+
+                        st.divider()
