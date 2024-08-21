@@ -43,13 +43,48 @@ st.write("_Enter a list of YouTube channels or videos._")
 st.divider()
 
 
+def render_content(summaries):
+    """Displays the content of several videos"""
+
+    for summary in summaries:
+        for video in summary:
+            result, is_html = format_summary(video, return_html=False)
+
+            st.markdown("".join(result), unsafe_allow_html=is_html)
+
+            if is_html:
+                st.write("\n\n")
+
+            else:
+                cols = st.columns(8)
+
+                watch_btn = cols[0].button(
+                    label="Watch",
+                    help="Watch this video on YouTube",
+                    key="watch_" + video["video_id"],
+                    on_click=user_action_dialog,
+                    kwargs={"action": "watch"},
+                )
+
+                chat_btn = cols[1].button(
+                    label="Chat",
+                    help="Chat this video with ChatGPT",
+                    key="chat_" + video["video_id"],
+                    on_click=user_action_dialog,
+                    kwargs={"action": "chat"},
+                )
+
+                st.divider()
+
+
 @st.dialog(title="Your video")
 def user_action_dialog(action: str, url: str = None):
     """Create a modal to handle a user action"""
     st.write(f"You are about to {action} a video...")
-    if st.button("Ok"):
-        st.rerun()
 
+
+if "result" in st.session_state:
+    render_content(st.session_state.result)
 
 if submit:
     url_validations = [utils.validate_url(url) for url in urls]
@@ -74,30 +109,5 @@ if submit:
         else:
             content = response.json()
             summaries = content.get("data").get("summaries")
-            for summary in summaries:
-                for video in summary:
-                    result, is_html = format_summary(video, return_html=False)
-
-                    st.markdown("".join(result), unsafe_allow_html=is_html)
-
-                    if is_html:
-                        st.write("\n\n")
-
-                    else:
-                        cols = st.columns(8)
-
-                        watch_btn = cols[0].button(
-                            label="Watch",
-                            help="Watch this video on YouTube",
-                            key="watch_" + video["video_id"],
-                            on_click=user_action_dialog,
-                            kwargs={"action": "watch"},
-                        )
-
-                        chat_btn = cols[1].button(
-                            label="Chat",
-                            help="Chat this video with ChatGPT",
-                            key="chat_" + video["video_id"],
-                        )
-
-                        st.divider()
+            st.session_state.result = summaries
+            render_content(summaries)

@@ -102,4 +102,4 @@ def format_summary(video, return_html: bool = True) -> tuple[list[str], bool]:
             r = f"**{s}**: {v}\n\n"
             res.append(r)
 
-    return res, return_html
+        return res, return_html
