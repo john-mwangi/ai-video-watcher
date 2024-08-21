@@ -44,9 +44,9 @@ st.divider()
 
 
 @st.dialog(title="Your video")
-def user_action(type_: str, url: str = None):
+def user_action_dialog(action: str, url: str = None):
     """Create a modal to handle a user action"""
-    st.write(f"You are about to {type_} a video...")
+    st.write(f"You are about to {action} a video...")
     if st.button("Ok"):
         st.rerun()
 
@@ -90,6 +90,8 @@ if submit:
                             label="Watch",
                             help="Watch this video on YouTube",
                             key="watch_" + video["video_id"],
+                            on_click=user_action_dialog,
+                            kwargs={"action": "watch"},
                         )
 
                         chat_btn = cols[1].button(
@@ -97,9 +99,5 @@ if submit:
                             help="Chat this video with ChatGPT",
                             key="chat_" + video["video_id"],
                         )
-
-                        # FIXME
-                        if watch_btn:
-                            user_action(type_="watch")
 
                         st.divider()
