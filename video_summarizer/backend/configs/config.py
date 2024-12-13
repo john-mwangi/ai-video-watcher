@@ -25,8 +25,10 @@ class ModelParams(BaseSettings):
     BULLETS: int
     BATCH_CHUNKS: int
     TYPE: str
+    LIMIT_TRANSCRIPT: int | None
 
-    def load(path: Path = params_path):
+    def load():
+        path: Path = params_path
         with open(path, mode="r") as f:
             params = yaml.safe_load(f).get("model_params")
 
