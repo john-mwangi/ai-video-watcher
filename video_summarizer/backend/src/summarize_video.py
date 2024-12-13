@@ -91,14 +91,11 @@ def summarize_transcript(transcript, bullets, model, limit, model_type) -> str:
             ollama_params = yaml.safe_load(f).get("ollama_params")
 
         endpoint = os.environ["_OLLAMA_ENDPOINT"]
-        stream = ollama_params["stream"]
-        keep_alive = ollama_params["keep_alive"]
 
         data = {
             "model": config.ModelParams.load().MODEL,
-            "stream": stream,
-            "keep_alive": keep_alive,
             "prompt": question,
+            **ollama_params,
         }
 
         response = requests.post(url=endpoint, json=data)
