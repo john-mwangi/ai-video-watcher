@@ -24,6 +24,7 @@ class ModelParams(BaseSettings):
     SUMMARY_LIMIT: int
     BULLETS: int
     BATCH_CHUNKS: int
+    TYPE: str
 
     def load(path: Path = params_path):
         with open(path, mode="r") as f:

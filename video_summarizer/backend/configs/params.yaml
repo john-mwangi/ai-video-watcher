@@ -1,9 +1,13 @@
 model_params:
-  MODEL: gpt-4-1106-preview
+  MODEL: llama3.2:1b-instruct-q2_K
   CHUNK_SIZE: 10
   SUMMARY_LIMIT: 150
   BULLETS: 5
   BATCH_CHUNKS: 2
+  TYPE: ollama
+ollama_params:
+  stream: false
+  keep_alive: 10m
 responses:
   ERROR:
     status: VIDEO_NOT_SUMMARISED
@@ -11,7 +15,7 @@ responses:
   SUCCESS:
     status: VIDEO_SUMMARISED_SUCCESSFULLY
     message: "The video was successfully summarised using AI"
-endpoint: 
+endpoint:
   api_prefix: /api/v1
   algorithm: HS256
   access_token_expire_minutes: 30
