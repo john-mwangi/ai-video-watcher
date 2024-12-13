@@ -1,3 +1,7 @@
+import os
+
+import requests
+import yaml
 from dotenv import load_dotenv
 from langchain.chains import LLMChain
 from langchain.chat_models import ChatOpenAI
@@ -6,7 +10,9 @@ from tqdm import tqdm
 
 from video_summarizer.backend.configs import config
 from video_summarizer.backend.src.extract_transcript import (
-    get_transcript_from_db, get_video_title)
+    get_transcript_from_db,
+    get_video_title,
+)
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
 
@@ -67,7 +73,7 @@ def check_if_summarised(video_id: str) -> tuple[bool, None | str]:
     return is_summarised, data
 
 
-def summarize_transcript(transcript, bullets, model, limit) -> str:
+def summarize_transcript(transcript, bullets, model, limit, model_type) -> str:
     """Provides a summary for a video transcript"""
 
     question = f"""Consider the following video transcript: 
@@ -80,21 +86,45 @@ def summarize_transcript(transcript, bullets, model, limit) -> str:
     timestamps. The total number of words should not be more than {limit}.
     """
 
+    if model_type == "ollama":
+        with open(config.params_path, mode="r") as f:
+            ollama_params = yaml.safe_load(f).get("ollama_params")
+
+        endpoint = os.environ["_OLLAMA_ENDPOINT"]
+        stream = ollama_params["stream"]
+        keep_alive = ollama_params["keep_alive"]
+
+        data = {
+            "model": config.ModelParams.load().MODEL,
+            "stream": stream,
+            "keep_alive": keep_alive,
+            "prompt": question,
+        }
+
+        response = requests.post(url=endpoint, json=data)
+        content = response.json()
+        summary = content["response"]
+        return summary
+
     summary = model.predict(question=question)
     return summary
 
 
-def summarize_list_of_transcripts(transcripts, bullets, model, limit):
+def summarize_list_of_transcripts(
+    transcripts, bullets, model, limit, model_type
+):
     """Summarize a list of transcripts into a list of summaries"""
 
     summaries = [
-        summarize_transcript(transcript, bullets, model, limit)
+        summarize_transcript(transcript, bullets, model, limit, model_type)
         for transcript in tqdm(transcripts)
     ]
     return summaries
 
 
-def summarize_list_of_summaries(summaries, chunk_size, bullets, model, limit):
+def summarize_list_of_summaries(
+    summaries, chunk_size, bullets, model, limit, model_type
+):
     """Summarise a list of summaries into a summary"""
 
     # group list of summaries into chunks
@@ -105,13 +135,15 @@ def summarize_list_of_summaries(summaries, chunk_size, bullets, model, limit):
 
     # join chunks into a single prompt/string and send to model
     combined_summaries = [
-        summarize_transcript(" ".join(chunk), bullets, model, limit)
+        summarize_transcript(
+            " ".join(chunk), bullets, model, limit, model_type
+        )
         for chunk in tqdm(chunked_summaries)
     ]
 
     # repeat
     return summarize_transcript(
-        " ".join(combined_summaries), bullets, model, limit
+        " ".join(combined_summaries), bullets, model, limit, model_type
     )
 
 
@@ -142,11 +174,7 @@ def save_summary(data: dict | list[dict]):
 def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
     load_dotenv()
 
-    model = init_model(config.prompt_template)
     msgs = []
-
-    ModelParams = config.ModelParams
-
     is_summarised, data = check_if_summarised(video_id)
 
     if is_summarised:
@@ -154,6 +182,8 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
         msgs.append(data)
 
     else:
+        model = init_model(config.prompt_template)
+        ModelParams = config.ModelParams
 
         video_url = f"https://www.youtube.com/watch?v={video_id}"
 
@@ -196,6 +226,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
             ModelParams.load().BULLETS,
             model,
             ModelParams.load().SUMMARY_LIMIT,
+            model_type=ModelParams.load().TYPE,
         )
 
         # Combine summaries in chunks and summarize them iteratively until a single summary is obtained
@@ -207,6 +238,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
                     ModelParams.load().BULLETS,
                     model,
                     ModelParams.load().SUMMARY_LIMIT,
+                    model_type=ModelParams.load().TYPE,
                 )
             ]
 

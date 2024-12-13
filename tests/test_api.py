@@ -116,7 +116,7 @@ def test_urls_from_channel():
 def test_url_validation():
     "Test URL format & domain"
     assert (
-        validate_url("https://docs.pydantic.dev/latest/api/networks/") == True
+        validate_url("https://docs.pydantic.dev/latest/api/networks/") == False
     )
 
     assert validate_url("xxx") == False
@@ -126,6 +126,8 @@ def test_url_validation():
     assert validate_url(None) == False
 
     assert validate_url("") == False
+
+    assert validate_url("https://www.youtube.com") == True
 
 
 def test_save_summaries():

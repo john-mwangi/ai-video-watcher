@@ -4,3 +4,4 @@ transcripts
 files
 *.gz
 .coverage
+dist
