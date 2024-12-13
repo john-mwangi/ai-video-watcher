@@ -6,7 +6,9 @@ from tqdm import tqdm
 
 from video_summarizer.backend.configs import config
 from video_summarizer.backend.src.extract_transcript import (
-    get_transcript_from_db, get_video_title)
+    get_transcript_from_db,
+    get_video_title,
+)
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
 
@@ -142,11 +144,7 @@ def save_summary(data: dict | list[dict]):
 def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
     load_dotenv()
 
-    model = init_model(config.prompt_template)
     msgs = []
-
-    ModelParams = config.ModelParams
-
     is_summarised, data = check_if_summarised(video_id)
 
     if is_summarised:
@@ -154,6 +152,8 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
         msgs.append(data)
 
     else:
+        model = init_model(config.prompt_template)
+        ModelParams = config.ModelParams
 
         video_url = f"https://www.youtube.com/watch?v={video_id}"
 
