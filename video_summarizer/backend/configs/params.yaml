@@ -1,5 +1,5 @@
 model_params:
-  MODEL: llama3.2:1b-instruct-q2_K
+  MODEL: llama3.2
   CHUNK_SIZE: 10
   SUMMARY_LIMIT: 150
   BULLETS: 5
