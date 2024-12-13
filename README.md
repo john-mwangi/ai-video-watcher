@@ -44,6 +44,9 @@ db.createUser(
 ### Local development
 - Run FastAPI backend: `uvicorn api:app --host 0.0.0.0 --port 12000 --reload`
 - Run Streamlit frontend: `streamlit run ui.py`
+- Access Swagger docs: `http://0.0.0.0:12000/docs`
+- Click the lock icon to add credentials before calling the `/summarize_video` endpoint
+
 ### Running tests
 * tests: `pytest -vs`
 * coverage report: `pytest --cov --cov-report=html`
