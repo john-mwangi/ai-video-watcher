@@ -1,13 +1,13 @@
-# Video Summarizer
+# Jasper, Video Summarizer
 ## About
-This tool uses ChatGPT to summarise a YouTube video by providing either a YouTube channel or the video link.
+Jasper uses ChatGPT to summarise a YouTube video by providing either a YouTube channel or the video link.
 
 It will provide a brief 150 word summary of the video as well as the top 5 main points in the video.
 The main points are timestamped so that it's easy to navigate the video where
 the conversation is taking place. 
 
 This tool allows one to determine whether to summarise the entire video or
-a portion of the video - the first 25% of the video being the default.
+a portion of the video.
 
 ## Installation
 - Clone this repo
@@ -31,13 +31,8 @@ db.createUser(
 )
 ```
 ## Usage
-### Build the Docker container
-**Option 1**
-- Clone this repo
-- Build the Docker container: `DOCKER_BUILDKIT=1 docker build -f Dockerfile -t video_summarizer .`
-
-**Option 2**
-- Run: `docker pull --platform=linux/arm64 johnmw01/video_summarizer:latest`
+### Docker
+- Run: `docker pull --platform=linux/arm64 johnmwangi/chatgpt-video-summarizer:latest`
 
 ### Run the container
 - Create a `.env` with your credentials
@@ -46,6 +41,9 @@ db.createUser(
 - Enter a channel url or video url to the api
 - Video summaries will be saved in the database and display on the app
 
+### Local development
+- Run FastAPI backend: `uvicorn api:app --host 0.0.0.0 --port 12000 --reload`
+- Run Streamlit frontend: `streamlit run ui.py`
 ### Running tests
 * tests: `pytest -vs`
 * coverage report: `pytest --cov --cov-report=html`
