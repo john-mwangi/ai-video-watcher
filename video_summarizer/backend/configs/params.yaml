@@ -5,6 +5,7 @@ model_params:
   BULLETS: 5
   BATCH_CHUNKS: 2
   TYPE: ollama
+  LIMIT_TRANSCRIPT: null
 ollama_params:
   stream: false
   keep_alive: 10m
