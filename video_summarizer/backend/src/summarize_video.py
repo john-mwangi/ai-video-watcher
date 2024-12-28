@@ -222,7 +222,7 @@ def main(limit_transcript: int | float, video_id: str):
             ModelParams.load().BULLETS,
             model,
             ModelParams.load().SUMMARY_LIMIT,
-            model_type=ModelParams.load().TYPE,
+            model_type=ModelParams.load().PROVIDER,
         )
 
         # Combine summaries in chunks and summarize them iteratively until a single summary is obtained
@@ -234,7 +234,7 @@ def main(limit_transcript: int | float, video_id: str):
                     ModelParams.load().BULLETS,
                     model,
                     ModelParams.load().SUMMARY_LIMIT,
-                    model_type=ModelParams.load().TYPE,
+                    model_type=ModelParams.load().PROVIDER,
                 )
             ]
 

@@ -14,7 +14,7 @@ class ModelParams(BaseSettings):
     SUMMARY_LIMIT: int
     BULLETS: int
     BATCH_CHUNKS: int
-    TYPE: str
+    PROVIDER: str
     VECTOR_DB: str
 
     def load():

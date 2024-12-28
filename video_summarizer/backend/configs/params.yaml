@@ -4,7 +4,7 @@ model_params:
   SUMMARY_LIMIT: 150
   BULLETS: 5
   BATCH_CHUNKS: 2
-  TYPE: ollama
+  PROVIDER: ollama
   VECTOR_DB: pgvector
 ollama_params:
   stream: false
