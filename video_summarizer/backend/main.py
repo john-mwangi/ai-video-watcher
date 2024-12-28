@@ -2,9 +2,8 @@ from pprint import pprint
 
 from scrapetube import get_channel
 
-from video_summarizer.backend.src.extract_transcript import (
-    main as extract_main,
-)
+from video_summarizer.backend.src.extract_transcript import \
+    main as extract_main
 from video_summarizer.backend.src.summarize_video import main as summarise_main
 from video_summarizer.backend.utils.utils import logger
 
@@ -89,10 +88,10 @@ def main(
 
     msgs = []
     for video_id in video_ids:
-        msg = summarise_main(LIMIT_TRANSCRIPT, video_id)
+        msg, response_status = summarise_main(LIMIT_TRANSCRIPT, video_id)
         msgs.append(msg)
 
-    return msgs
+    return msgs, response_status
 
 
 if __name__ == "__main__":

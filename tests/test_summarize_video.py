@@ -36,21 +36,42 @@ def get_access_token(user, pwd):
     return token
 
 
-def test_summarise_video():
+def test_summarise_new_video():
     token = get_access_token(username, password)
     header = {"Authorization": f"Bearer {token}"}
     url = "http://0.0.0.0:12000/api/v1/summarize_video"
-    video_1 = "https://www.youtube.com/watch?v=TRjq7t2Ms5I"
-    video_2 = "https://www.youtube.com/watch?v=IUTFrexghsQ"
+    video = "https://www.youtube.com/watch?v=IUTFrexghsQ"
 
     data = {
         "channels": [],
-        "videos": [video_1, video_2],
+        "videos": [video],
         "limit_transcript": 0.25,
         "top_n": 2,
         "sort_by": "newest",
     }
 
     response = requests.post(url=url, json=data, headers=header)
+    status = response.json()["status"]
 
     assert response.status_code == 200
+    assert status == "VIDEO_SUMMARISED_SUCCESSFULLY"
+    
+def test_summarise_existing_video():
+    token = get_access_token(username, password)
+    header = {"Authorization": f"Bearer {token}"}
+    url = "http://0.0.0.0:12000/api/v1/summarize_video"
+    video = "https://www.youtube.com/watch?v=IUTFrexghsQ"
+
+    data = {
+        "channels": [],
+        "videos": [video],
+        "limit_transcript": 0.25,
+        "top_n": 2,
+        "sort_by": "newest",
+    }
+
+    response = requests.post(url=url, json=data, headers=header)
+    status = response.json()["status"]
+
+    assert response.status_code == 200
+    assert status == "VIDEO_RETRIEVED_SUCCESSFULLY"

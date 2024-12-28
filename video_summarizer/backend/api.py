@@ -2,6 +2,7 @@ import configparser
 
 import yaml
 from fastapi import APIRouter, Depends, FastAPI
+from fastapi import status as fstatus
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -66,7 +67,7 @@ def fetch_video_summary(video_urls: VideoUrls):
     * channels: a list of channels to retrive a video(s) to summarise from based on `sort_by` and `top_n` parameters\n
     * video: a list of video urls to summarise\n
     * limit_transcript: portion of the video transcript to summarise
-    (None=full, <1 = partial, >=1 = number of chuncks)\n
+    (None=full, <1 = partial, >=1 = number of chunks)\n
     * top_n: retrieves this number of video from a channel to summarise\n
     * sort_by: sorts `top_n`
 
@@ -79,7 +80,7 @@ def fetch_video_summary(video_urls: VideoUrls):
         responses = yaml.safe_load(f).get("responses")
 
     try:
-        summaries = main(
+        summaries, response_status = main(
             channels=video_urls.channels,
             videos=video_urls.videos,
             LIMIT_TRANSCRIPT=video_urls.limit_transcript,
@@ -88,14 +89,14 @@ def fetch_video_summary(video_urls: VideoUrls):
         )
 
         data = {"data": {"summaries": summaries}}
-        status = responses.get("SUCCESS")
-        status_code = config.statuses.SUCCESS.value
+        status = responses.get(response_status)
+        status_code = fstatus.HTTP_200_OK
 
     except Exception as e:
         logger.exception(e)
         data = {"summaries": None}
-        status = responses.get("ERROR")
-        status_code = config.statuses.ERROR.value
+        status = responses.get("VIDEO_NOT_SUMMARISED")
+        status_code = fstatus.HTTP_400_BAD_REQUEST
 
     return JSONResponse(content={**data, **status}, status_code=status_code)
 

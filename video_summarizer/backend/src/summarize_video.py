@@ -175,6 +175,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
     if is_summarised:
         logger.info(f"{video_id=}' has already been summarised")
         msgs.append(data)
+        response_status = "VIDEO_RETRIEVED_SUCCESSFULLY"
 
     else:
         model = init_model(config.prompt_template)
@@ -247,8 +248,9 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
 
         res = {k: v for k, v in data.items() if k in config.video_keys}
         msgs.append(res)
+        response_status = "VIDEO_SUMMARISED_SUCCESSFULLY"
 
-    return msgs
+    return msgs, response_status
 
 
 if __name__ == "__main__":

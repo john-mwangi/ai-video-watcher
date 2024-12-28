@@ -11,12 +11,15 @@ ollama_params:
   stream: false
   keep_alive: 10m
 responses:
-  ERROR:
+  VIDEO_NOT_SUMMARISED:
     status: VIDEO_NOT_SUMMARISED
-    message: "The video could not be summarised"
-  SUCCESS:
+    message: The video could not be summarised
+  VIDEO_SUMMARISED_SUCCESSFULLY:
     status: VIDEO_SUMMARISED_SUCCESSFULLY
-    message: "The video was successfully summarised using AI"
+    message: The video was successfully summarised using AI
+  VIDEO_RETRIEVED_SUCCESSFULLY:
+    status: VIDEO_RETRIEVED_SUCCESSFULLY
+    message: The video was successfully retieved
 endpoint:
   api_prefix: /api/v1
   algorithm: HS256
