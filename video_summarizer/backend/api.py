@@ -4,10 +4,10 @@ import yaml
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from main import main
 from pydantic import BaseModel
 
 from video_summarizer.backend.configs import config
+from video_summarizer.backend.main import main
 from video_summarizer.backend.utils import auth
 from video_summarizer.backend.utils.utils import logger
 
