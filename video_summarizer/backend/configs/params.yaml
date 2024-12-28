@@ -6,6 +6,7 @@ model_params:
   BATCH_CHUNKS: 2
   TYPE: ollama
   LIMIT_TRANSCRIPT: null
+  VECTOR_DB: pgvector
 ollama_params:
   stream: false
   keep_alive: 10m
