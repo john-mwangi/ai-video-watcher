@@ -198,6 +198,7 @@ python-jose = {version = "^3.3.0", extras = ["cryptography"]}
 python-multipart = "^0.0.9"
 passlib = {version = "^1.7.4", extras = ["bcrypt"]}
 pytest-cov = "^5.0.0"
+psycopg2 = "^2.9.10"
 
 
 [build-system]

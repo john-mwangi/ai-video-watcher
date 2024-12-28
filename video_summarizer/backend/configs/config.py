@@ -41,6 +41,8 @@ class Provider(Enum):
     openai = auto()
     anthropic = auto()
     ollama = auto()
+    pinecone = auto()
+    pgvector = auto()
 
 prompt_template = """system: You are a helpful assistant who provides useful summaries 
     to a video transcript. The format of the video transcript is `timestamp - dialogue`.
