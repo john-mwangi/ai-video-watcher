@@ -10,7 +10,7 @@ from pinecone import Pinecone, PodSpec
 from pinecone.data.index import Index
 from tqdm.auto import tqdm
 
-from video_summarizer.backend.configs.config import augmented_prompt
+from video_summarizer.backend.configs.config import Provider, augmented_prompt
 from video_summarizer.backend.src.summarize_video import init_model
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
@@ -189,7 +189,7 @@ class PineconeRAG:
         return self.query_vectorstore(query, embeddings=embeddings, index=index, k=k)
 
 
-def main(query: str, video_id: str, delete_index: bool = False):
+def main(query: str, video_id: str, provider: Provider, delete_index: bool = False):
     from dotenv import load_dotenv
     load_dotenv()
 
@@ -202,10 +202,10 @@ def main(query: str, video_id: str, delete_index: bool = False):
 
     logger.info(f"{context=}")
 
-    model = init_model(template=augmented_prompt)
-
-    logger.info("Connecting to ChatGPT...")
-    res = model.predict(question=query, context=context)
+    if provider != Provider.ollama.name:
+        model = init_model(template=augmented_prompt)
+        logger.info("Connecting to ChatGPT...")
+        res = model.predict(question=query, context=context)
 
     logger.info(res)
 
@@ -228,11 +228,17 @@ if __name__ == "__main__":
         action="store_true",
         default=False,
     )
+    
+    parser.add_argument(
+        "--provider",
+        help="Model provider (openai, anthropic, ollama)",
+        default=Provider.ollama.name
+    )
 
     args = parser.parse_args()
 
     logger.info(args)
 
     QUERY = "What is a vector store?"
-    res = main(QUERY, video_id=args.video_id, delete_index=args.delete_index)
+    res = main(QUERY, video_id=args.video_id, provider=args.provider, delete_index=args.delete_index)
     print(res)

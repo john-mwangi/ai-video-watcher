@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from pathlib import Path
 
 import yaml
@@ -36,6 +37,10 @@ class ApiSettings(BaseSettings):
             api_settings = yaml.safe_load(f)["endpoint"]
             return ApiSettings(**api_settings)
 
+class Provider(Enum):
+    openai = auto()
+    anthropic = auto()
+    ollama = auto()
 
 prompt_template = """system: You are a helpful assistant who provides useful summaries 
     to a video transcript. The format of the video transcript is `timestamp - dialogue`.
