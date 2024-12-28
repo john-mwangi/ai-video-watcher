@@ -1,8 +1,6 @@
-from enum import Enum
 from pathlib import Path
 
 import yaml
-from fastapi import status
 from pydantic_settings import BaseSettings
 
 ROOT_DIR = Path(__file__).parent.parent.parent.parent.resolve()
@@ -10,14 +8,6 @@ params_path = ROOT_DIR / f"video_summarizer/backend/configs/params.yaml"
 WWW_DIR = ROOT_DIR / "video_summarizer/frontend/www"
 
 video_keys = ["video_id", "video_url", "video_title", "summary"]
-
-
-class statuses(Enum):
-    SUCCESS = status.HTTP_200_OK
-    ERROR = status.HTTP_400_BAD_REQUEST
-    NOT_FOUND = status.HTTP_404_NOT_FOUND
-
-
 class ModelParams(BaseSettings):
     MODEL: str
     CHUNK_SIZE: int
@@ -25,7 +15,8 @@ class ModelParams(BaseSettings):
     BULLETS: int
     BATCH_CHUNKS: int
     TYPE: str
-    LIMIT_TRANSCRIPT: int | None
+    LIMIT_TRANSCRIPT: float | int | None
+    VECTOR_DB: str
 
     def load():
         path: Path = params_path
