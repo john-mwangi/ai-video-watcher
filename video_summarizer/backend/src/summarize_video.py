@@ -166,7 +166,7 @@ def save_summary(data: dict | list[dict], collection_name: str = "summaries"):
             raise ValueError(f"Cannot save type: {type(data)}")
 
 
-def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
+def main(limit_transcript: int | float, video_id: str):
     load_dotenv()
 
     msgs = []
@@ -204,16 +204,18 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
 
         # Chunk the entire transcript into list of lines
         transcripts = chunk_a_list(transcript, ModelParams.load().CHUNK_SIZE)
+        
+        breakpoint()
 
-        if (LIMIT_TRANSCRIPT is not None) & (LIMIT_TRANSCRIPT > 1):
-            transcripts = transcripts[:LIMIT_TRANSCRIPT]
+        if (limit_transcript is not None) & (limit_transcript > 1):
+            transcripts = transcripts[:limit_transcript]
 
-        elif LIMIT_TRANSCRIPT <= 1:
-            length = len(transcripts) * LIMIT_TRANSCRIPT
+        elif limit_transcript <= 1:
+            length = len(transcripts) * limit_transcript
             transcripts = transcripts[: int(length)]
 
         else:
-            raise ValueError("incorrect value for LIMIT_TRANSCRIPT")
+            raise ValueError("incorrect value for limit_transcript")
 
         # Summary of summaries: recursively chunk the list & summarise until len(summaries) == 1
         # Summarize each transcript

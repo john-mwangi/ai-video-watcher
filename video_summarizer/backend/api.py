@@ -13,7 +13,6 @@ from video_summarizer.backend.utils import auth
 from video_summarizer.backend.utils.utils import logger
 
 API_PREFIX = config.ApiSettings.load_settings().api_prefix
-LIMIT_TRANSCRIPT = config.ModelParams.load().LIMIT_TRANSCRIPT
 
 parser = configparser.ConfigParser()
 parser.read(config.ROOT_DIR / "pyproject.toml")
@@ -24,7 +23,7 @@ description = parser["tool.poetry"]["description"].replace('"', "")
 class VideoUrls(BaseModel):
     channels: list[str] = []
     videos: list[str] = []
-    limit_transcript: float | int | None = LIMIT_TRANSCRIPT
+    limit_transcript: float | int
     top_n: int = 2
     sort_by: str = "newest"
 
@@ -83,7 +82,7 @@ def fetch_video_summary(video_urls: VideoUrls):
         summaries, response_status = main(
             channels=video_urls.channels,
             videos=video_urls.videos,
-            LIMIT_TRANSCRIPT=video_urls.limit_transcript,
+            limit_transcript=video_urls.limit_transcript,
             sort_by=video_urls.sort_by,
             top_n=video_urls.top_n,
         )

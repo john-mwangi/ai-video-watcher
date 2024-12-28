@@ -15,6 +15,7 @@ load_dotenv(find_dotenv(f"{APP_ENV}.env"))
 username = os.environ.get("_USERNAME")
 password = os.environ.get("_PASSWORD")
 video_id = "IUTFrexghsQ"
+limit_transcript = 0
 
 def get_access_token(user, pwd):
     url = "http://0.0.0.0:12000/api/v1/token"
@@ -57,7 +58,7 @@ def test_summarise_new_video():
     data = {
         "channels": [],
         "videos": [video],
-        "limit_transcript": 0.25,
+        "limit_transcript": limit_transcript,
         "top_n": 2,
         "sort_by": "newest",
     }
@@ -78,7 +79,7 @@ def test_summarise_existing_video():
     data = {
         "channels": [],
         "videos": [video],
-        "limit_transcript": 0.25,
+        "limit_transcript": limit_transcript,
         "top_n": 2,
         "sort_by": "newest",
     }

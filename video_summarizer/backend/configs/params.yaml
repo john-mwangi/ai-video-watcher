@@ -5,7 +5,6 @@ model_params:
   BULLETS: 5
   BATCH_CHUNKS: 2
   TYPE: ollama
-  LIMIT_TRANSCRIPT: null
   VECTOR_DB: pgvector
 ollama_params:
   stream: false

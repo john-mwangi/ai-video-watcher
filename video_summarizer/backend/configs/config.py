@@ -15,7 +15,6 @@ class ModelParams(BaseSettings):
     BULLETS: int
     BATCH_CHUNKS: int
     TYPE: str
-    LIMIT_TRANSCRIPT: float | int | None
     VECTOR_DB: str
 
     def load():
