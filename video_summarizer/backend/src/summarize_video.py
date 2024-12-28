@@ -3,16 +3,14 @@ import os
 import requests
 import yaml
 from dotenv import load_dotenv
-from langchain.chains import LLMChain
+from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.chat_models import ChatOpenAI
 from tqdm import tqdm
 
 from video_summarizer.backend.configs import config
 from video_summarizer.backend.src.extract_transcript import (
-    get_transcript_from_db,
-    get_video_title,
-)
+    get_transcript_from_db, get_video_title)
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
 
@@ -144,25 +142,25 @@ def summarize_list_of_summaries(
     )
 
 
-def save_summary(data: dict | list[dict]):
+def save_summary(data: dict | list[dict], collection_name: str = "summaries"):
     """Saves data to a MongoDB database"""
 
     client, _DB = get_mongodb_client()
 
     with client:
         db = client[_DB]  # Establish db connection
-        summaries = db.summaries  # Create a collection
+        collection = db[collection_name]  # Create a collection
 
         # Insert a record(s)
         if isinstance(data, dict):
-            result = summaries.insert_one(data)
+            result = collection.insert_one(data)
             logger.info(
-                f"Record {result.inserted_id} successfully added to {summaries.name} collection in {db.name} db"
+                f"Record {result.inserted_id} successfully added to {collection.name} collection in {db.name} db"
             )
         elif isinstance(data, list):
-            result = summaries.insert_many(data)
+            result = collection.insert_many(data)
             logger.info(
-                f"Record {result.inserted_ids} successfully added to {summaries.name} collection in {db.name} db"
+                f"Record {result.inserted_ids} successfully added to {collection.name} collection in {db.name} db"
             )
         else:
             raise ValueError(f"Cannot save type: {type(data)}")
