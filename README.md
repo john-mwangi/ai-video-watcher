@@ -38,9 +38,9 @@ show users
 ### Querying a collection
 ```
 use video_summarizer
-show tables
-create table transcripts
-create table summaries
+show collections
+db.createCollection("transcripts")
+db.createCollection("summaries")
 db.summaries.countDocuments()
 db.summaries.find().limit(2)
 db.summaries.find( { video_id: 'JEBDfGqrAUA' } )
