@@ -187,7 +187,7 @@ def main(limit_transcript: int | float, video_id: str):
             "video_id": video_id,
             "video_url": video_url,
             "video_title": get_video_title(video_url),
-            "params": dict(ModelParams.load()),
+            "params": {**dict(ModelParams.load()), **{"LIMIT_TRANSCRIPT": limit_transcript}},
         }
 
         missing_keys = []
@@ -205,17 +205,15 @@ def main(limit_transcript: int | float, video_id: str):
         # Chunk the entire transcript into list of lines
         transcripts = chunk_a_list(transcript, ModelParams.load().CHUNK_SIZE)
         
-        breakpoint()
-
-        if (limit_transcript is not None) & (limit_transcript > 1):
+        if not isinstance(limit_transcript, (int, float)):
+            raise ValueError(f"incorrect value for {limit_transcript=}")
+        
+        if limit_transcript > 1:
             transcripts = transcripts[:limit_transcript]
 
-        elif limit_transcript <= 1:
+        if limit_transcript > 0 and limit_transcript < 1:
             length = len(transcripts) * limit_transcript
-            transcripts = transcripts[: int(length)]
-
-        else:
-            raise ValueError("incorrect value for limit_transcript")
+            transcripts = transcripts[: int(length)]           
 
         # Summary of summaries: recursively chunk the list & summarise until len(summaries) == 1
         # Summarize each transcript
