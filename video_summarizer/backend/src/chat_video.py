@@ -16,6 +16,8 @@ from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
 
 class PineconeRAG:
+    """Class for using Pinecone as the RAG provider"""
+    
     def __init__(self, api_key, environment):
         self.api_key = api_key
         self.environment = environment
@@ -24,10 +26,10 @@ class PineconeRAG:
     def get_create_pinecone_index(self, index_name: str):
         """Retrieve an index from Pinecode vectorstore"""
 
+        pc = self.pc
         available_idx = [i.get("name") for i in pc.list_indexes().get("indexes")]
 
         if index_name not in available_idx:
-            pc = self.pc
             pc.create_index(
                 name=index_name,
                 dimension=1536,  # https://www.pinecone.io/learn/openai-embeddings-v3/
@@ -219,6 +221,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--video_id", help="The video id to chat with", required=True
     )
+    
     parser.add_argument(
         "--delete_index",
         help="Delete the Pinecone index",
