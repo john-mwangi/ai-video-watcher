@@ -1,17 +1,21 @@
 """Module for chatting with a video via a RAG"""
 
-import json
 import os
 import time
 from uuid import uuid4
 
 import pandas as pd
-from langchain.embeddings.openai import OpenAIEmbeddings
+import requests
+import yaml
+from langchain_core.documents import Document
+from langchain_openai.embeddings import OpenAIEmbeddings
+from langchain_postgres.vectorstores import PGVector
 from pinecone import Pinecone, PodSpec
 from pinecone.data.index import Index
 from sqlalchemy import create_engine, text
 from tqdm.auto import tqdm
 
+from video_summarizer.backend.configs import config
 from video_summarizer.backend.configs.config import Provider, augmented_prompt
 from video_summarizer.backend.src.summarize_video import init_model
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
@@ -208,64 +212,69 @@ class PineconeRAG:
 class PgVectorRAG:
     """Class for using pgvector as the vector store"""
     
-    def __init__(self, host, port, username, password, database):
+    def __init__(self, host, port, username, password, database, video_id):
         self.uri = f"postgresql://{username}:{password}@{host}:{port}/{database}"
         self.engine = create_engine(self.uri)
-    
-    def upsert_document(self, video_id):
-        doc = get_document(video_id)
-        transcript = doc.get("transcript")
+        self.collection_name = "transcripts"
+        self.embeddings = OpenAIEmbeddings()
+        self.video_id = video_id
+        
+    def get_vectorstore(self):
+        """Creates a PGVector instance"""
+        
+        vectorstore = PGVector(
+            embeddings=self.embeddings,
+            collection_name=self.collection_name,
+            connection=self.engine,
+            use_jsonb=True
+        )
+        
+        return vectorstore
 
+    def upsert_document(self, vectorstore: PGVector):
+        """Insert documents to the vectorstore"""
+        
+        doc = get_document(self.video_id)
+        transcript = doc.get("transcript")
+        
         df = pd.DataFrame(transcript)
         if df.isnull().values.any():
             logger.error("df contains null values")
             return None
         
         data = df[0].str.extract(r"\n(\d+:\d{2}:\d{2})\s-\s(.*)")
-        data.columns = ["timestamp", "text"]
-
-        batch_size = 100
-        engine = self.engine
+        data[id] = list(range(len(data)))
+        data.columns = ["timestamp", "text", "id"]
         
-        for i in tqdm(range(0, len(data), batch_size)):
-            i_end = min(len(data), i + batch_size)
-            batch = data.iloc[i:i_end]
-            
-            ids, embeds, metadata = get_embeddings(batch)
-        
-            query1 = f"""
-            INSERT INTO items (id, embedding, metadata) VALUES 
-            (1, '[1,2,3]', '{{"text": "search on the data using an approximate", "timestamp": "0:04:13"}}'), 
-            (2, '[4,5,6]', '{{"text": "search on the data using an approximate", "timestamp": "0:04:13"}}')
-            ON CONFLICT (id) DO UPDATE SET embedding = EXCLUDED.embedding;
-            """
-            
-            meta = {"text": "search on the data using an approximate", "timestamp": "0:04:13"}
-            v1 = [1,2,3]
-            v2 = [3,4,5]
-            
-            query2 = f"""
-            INSERT INTO items (id, embedding, metadata) VALUES 
-            (1, '{str(v1)}', '{json.dumps(meta)}'), 
-            (2, '{str(v2)}', '{json.dumps(meta)}')
-            ON CONFLICT (id) DO UPDATE SET embedding = EXCLUDED.embedding;
-            """
-            
-            query3 = f"""
-            INSERT INTO items (id, embedding, metadata) VALUES 
-            {", ".join(f"({id}, '{str(embed)}', '{json.dumps(meta)}')" 
-                    for id, embed, meta in zip(ids, embeds, metadata))}
-            ON CONFLICT (id) DO UPDATE SET embedding = EXCLUDED.embedding;
-            """
-            
-            print("embeddings vector len:", len(embeds[0]))
-            
-            with engine.begin() as conn:
-                conn.execute(text(query3))
-                
-            exit()
+        print(data.head())
 
-    # query pgvector
+        docs = [
+            Document(
+                page_content=row["text"], 
+                metadata={"id": row["id"], "timestamp": row["timestamp"]},
+                )
+            for i, row in data.iterrows()
+            ]
+        
+        logger.info(f"Sample documents: {docs[:5]}")
+        
+        vectorstore.add_documents(documents=docs, ids=[doc.metadata["id"] for doc in docs])
+        
+        logger.info("Documents added to pgvector successfully")
+
+    def query_vectorstore(self, query: str, k: int = 10):
+        """Queries the vectors store to finding documents that are similar to an embedding"""
+        
+        embeds = self.embeddings.embed_query(query)
+        
+        query = f"""
+        SELECT * FROM langchain_pg_embedding ORDER BY embedding <=> '{embeds}' LIMIT {k};
+        """
+        
+        with self.engine.connect() as conn:
+            result = conn.execute(text(query)).fetchall()
+        
+        return [r.document for r in result]
     
 def main(query: str, video_id: str, model: Provider, vectorstore: Provider, delete_index: bool = False):
     from dotenv import load_dotenv
@@ -291,14 +300,37 @@ def main(query: str, video_id: str, model: Provider, vectorstore: Provider, dele
             username=PG_USERNAME, 
             password=PG_PASSWORD, 
             database=PG_DATABASE,
+            video_id=video_id,
             )
         
-        pgvector_rag.upsert_document(video_id)
+        vs = pgvector_rag.get_vectorstore()
+        context = pgvector_rag.query_vectorstore(query, vs)
+    
+    logger.info(f"Connecting to {model}...")
     
     if model != Provider.ollama.name:
         model = init_model(template=augmented_prompt)
-        logger.info("Connecting to ChatGPT...")
         res = model.predict(question=query, context=context)
+        
+    else:
+        prompt = f"""
+        Answer the following question using the provided context.
+        
+        question: {query}
+        
+        context: {context}
+        """
+        
+        with open(config.params_path, mode="r") as f:
+            ollama_params = yaml.safe_load(f).get("ollama_params")
+        
+        json_data = {
+            "model": config.ModelParams.load().MODEL,
+            "prompt": prompt,
+            **ollama_params
+        }
+        response = requests.post(url=os.environ.get("_OLLAMA_ENDPOINT"), json=json_data)
+        res = response.json()["response"]
 
     logger.info(res)
 
@@ -324,13 +356,13 @@ if __name__ == "__main__":
     
     parser.add_argument(
         "--model",
-        help="Model provider (openai, anthropic, ollama)",
+        help="Model provider [openai, anthropic, ollama (default)]",
         default=Provider.ollama.name
     )
     
     parser.add_argument(
         "--vectorstore",
-        help="The vector store. One of [pinecone, pgvector]",
+        help="The vector store [pinecone, pgvector(default)]",
         default=Provider.pgvector.name
     )
 
@@ -339,5 +371,13 @@ if __name__ == "__main__":
     logger.info(args)
 
     QUERY = "What is a vector store?"
-    res = main(QUERY, video_id=args.video_id, vectorstore=args.vectorstore, model=args.model, delete_index=args.delete_index)
-    print(res)
+    
+    answer = main(
+        QUERY, 
+        video_id=args.video_id, 
+        vectorstore=args.vectorstore, 
+        model=args.model, 
+        delete_index=args.delete_index,
+    )
+
+    print(answer)
