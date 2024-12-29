@@ -2,9 +2,8 @@ from pprint import pprint
 
 from scrapetube import get_channel
 
-from video_summarizer.backend.src.extract_transcript import (
-    main as extract_main,
-)
+from video_summarizer.backend.src.extract_transcript import \
+    main as extract_main
 from video_summarizer.backend.src.summarize_video import main as summarise_main
 from video_summarizer.backend.utils.utils import logger
 
@@ -62,7 +61,7 @@ def load_urls(video_urls: dict, sort_by: str) -> list[str] | set:
 def main(
     channels: list,
     videos: list,
-    LIMIT_TRANSCRIPT: int | float | None,
+    limit_transcript: int | float,
     top_n: int,
     sort_by: str,
 ):
@@ -89,10 +88,10 @@ def main(
 
     msgs = []
     for video_id in video_ids:
-        msg = summarise_main(LIMIT_TRANSCRIPT, video_id)
+        msg, response_status = summarise_main(limit_transcript, video_id)
         msgs.append(msg)
 
-    return msgs
+    return msgs, response_status
 
 
 if __name__ == "__main__":
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     ]
 
     msgs = main(
-        channels, videos, LIMIT_TRANSCRIPT=0.25, top_n=2, sort_by="newest"
+        channels, videos, limit_transcript=0.25, top_n=2, sort_by="newest"
     )
     for msg in msgs:
         pprint(msg)

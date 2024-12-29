@@ -1,21 +1,24 @@
 model_params:
-  MODEL: llama3.2:1b-instruct-q2_K
+  MODEL: llama3.2
   CHUNK_SIZE: 10
   SUMMARY_LIMIT: 150
   BULLETS: 5
   BATCH_CHUNKS: 2
-  TYPE: ollama
-  LIMIT_TRANSCRIPT: null
+  PROVIDER: ollama
+  VECTOR_DB: pgvector
 ollama_params:
   stream: false
   keep_alive: 10m
 responses:
-  ERROR:
+  VIDEO_NOT_SUMMARISED:
     status: VIDEO_NOT_SUMMARISED
-    message: "The video could not be summarised"
-  SUCCESS:
+    message: The video could not be summarised
+  VIDEO_SUMMARISED_SUCCESSFULLY:
     status: VIDEO_SUMMARISED_SUCCESSFULLY
-    message: "The video was successfully summarised using AI"
+    message: The video was successfully summarised using AI
+  VIDEO_RETRIEVED_SUCCESSFULLY:
+    status: VIDEO_RETRIEVED_SUCCESSFULLY
+    message: The video was successfully retieved
 endpoint:
   api_prefix: /api/v1
   algorithm: HS256
