@@ -195,7 +195,6 @@ streamlit-tags==1.2.8
 style==1.1.0
 tenacity==8.2.3
 threadpoolctl==3.2.0
-tiktoken==0.5.2
 tokenizers==0.20.0
 toml==0.10.2
 tomli==2.0.1
