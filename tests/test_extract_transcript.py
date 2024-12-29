@@ -24,7 +24,7 @@ def test_get_transcript_from_db():
     result = extract_transcript.get_transcript_from_db("VIDEO_ID")
     assert result is None
 
-
+@pytest.mark.skipif(condition=in_pipeline, reason="Not applicable")
 def test_get_video_transcript():
     transcript = extract_transcript.get_video_transcript(VIDEO_ID)
     assert len(transcript) == 604
