@@ -2,6 +2,7 @@
 
 import os
 
+import pytest
 import requests
 from dotenv import find_dotenv, load_dotenv
 
@@ -49,6 +50,7 @@ def delete_video(video_id: str = video_id) -> None:
     
     collection.delete_many(filter={"video_id": video_id})
 
+@pytest.mark.skipif(APP_ENV != "localhost", reason="can only test locally")
 def test_summarise_new_video():
     token = get_access_token(username, password)
     header = {"Authorization": f"Bearer {token}"}
@@ -69,7 +71,8 @@ def test_summarise_new_video():
 
     assert response.status_code == 200
     assert status == "VIDEO_SUMMARISED_SUCCESSFULLY"
-    
+
+@pytest.mark.skipif(APP_ENV != "localhost", reason="can only test locally")    
 def test_summarise_existing_video():
     token = get_access_token(username, password)
     header = {"Authorization": f"Bearer {token}"}
