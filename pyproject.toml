@@ -26,7 +26,7 @@ Issues = "https://github.com/john-mwangi/chatgpt-video-summarizer/issues"
 
 # ref: https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
 [tool.setuptools.packages.find]
-include = ["chatgpt_ui*"]
+include = ["video_summarizer*"]
 exclude = ["docs*", "tests*", "files", "*.env"]
 
 # ref: https://setuptools.pypa.io/en/latest/userguide/datafiles.html
