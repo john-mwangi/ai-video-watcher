@@ -22,7 +22,7 @@ Repository = "https://github.com/john-mwangi/chatgpt-video-summarizer"
 Issues = "https://github.com/john-mwangi/chatgpt-video-summarizer/issues"
 # Changelog = ""
 # Documentation = ""
-Homepage = ""
+# Homepage = ""
 
 # ref: https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
 [tool.setuptools.packages.find]
