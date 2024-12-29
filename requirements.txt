@@ -140,7 +140,6 @@ protobuf==4.24.4
 psutil==5.9.7
 psycopg2-binary
 psycopg-pool==3.2.4
-psycopg2==2.9.10
 ptyprocess==0.7.0
 pure-eval==0.2.2
 pyarrow==14.0.2
