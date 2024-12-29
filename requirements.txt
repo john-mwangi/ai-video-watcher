@@ -21,7 +21,6 @@ cachetools==5.3.2
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
-chatgpt-ui==0.0.1
 cleo==2.1.0
 click==8.1.7
 colorama==0.4.6
@@ -217,7 +216,7 @@ update==0.0.1
 urllib3==2.1.0
 uvicorn==0.25.0
 validators==0.22.0
-video_summarizer==0.1.0
+video_summarizer @ git+https://github.com/john-mwangi/chatgpt-video-summarizer.git@main
 virtualenv==20.25.0
 wandb==0.16.1
 watchdog==3.0.0
