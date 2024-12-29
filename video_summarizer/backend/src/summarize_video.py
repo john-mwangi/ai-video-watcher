@@ -3,16 +3,14 @@ import os
 import requests
 import yaml
 from dotenv import load_dotenv
-from langchain.chains import LLMChain
+from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain_community.chat_models import ChatOpenAI
 from tqdm import tqdm
 
 from video_summarizer.backend.configs import config
 from video_summarizer.backend.src.extract_transcript import (
-    get_transcript_from_db,
-    get_video_title,
-)
+    get_transcript_from_db, get_video_title)
 from video_summarizer.backend.utils.utils import get_mongodb_client, logger
 
 
@@ -144,31 +142,31 @@ def summarize_list_of_summaries(
     )
 
 
-def save_summary(data: dict | list[dict]):
+def save_summary(data: dict | list[dict], collection_name: str = "summaries"):
     """Saves data to a MongoDB database"""
 
     client, _DB = get_mongodb_client()
 
     with client:
         db = client[_DB]  # Establish db connection
-        summaries = db.summaries  # Create a collection
+        collection = db[collection_name]  # Create a collection
 
         # Insert a record(s)
         if isinstance(data, dict):
-            result = summaries.insert_one(data)
+            result = collection.insert_one(data)
             logger.info(
-                f"Record {result.inserted_id} successfully added to {summaries.name} collection in {db.name} db"
+                f"Record {result.inserted_id} successfully added to {collection.name} collection in {db.name} db"
             )
         elif isinstance(data, list):
-            result = summaries.insert_many(data)
+            result = collection.insert_many(data)
             logger.info(
-                f"Record {result.inserted_ids} successfully added to {summaries.name} collection in {db.name} db"
+                f"Record {result.inserted_ids} successfully added to {collection.name} collection in {db.name} db"
             )
         else:
             raise ValueError(f"Cannot save type: {type(data)}")
 
 
-def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
+def main(limit_transcript: int | float, video_id: str):
     load_dotenv()
 
     msgs = []
@@ -177,6 +175,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
     if is_summarised:
         logger.info(f"{video_id=}' has already been summarised")
         msgs.append(data)
+        response_status = "VIDEO_RETRIEVED_SUCCESSFULLY"
 
     else:
         model = init_model(config.prompt_template)
@@ -188,7 +187,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
             "video_id": video_id,
             "video_url": video_url,
             "video_title": get_video_title(video_url),
-            "params": dict(ModelParams.load()),
+            "params": {**dict(ModelParams.load()), **{"LIMIT_TRANSCRIPT": limit_transcript}},
         }
 
         missing_keys = []
@@ -205,16 +204,16 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
 
         # Chunk the entire transcript into list of lines
         transcripts = chunk_a_list(transcript, ModelParams.load().CHUNK_SIZE)
+        
+        if not isinstance(limit_transcript, (int, float)):
+            raise ValueError(f"incorrect value for {limit_transcript=}")
+        
+        if limit_transcript > 1:
+            transcripts = transcripts[:limit_transcript]
 
-        if (LIMIT_TRANSCRIPT is not None) & (LIMIT_TRANSCRIPT > 1):
-            transcripts = transcripts[:LIMIT_TRANSCRIPT]
-
-        elif LIMIT_TRANSCRIPT <= 1:
-            length = len(transcripts) * LIMIT_TRANSCRIPT
-            transcripts = transcripts[: int(length)]
-
-        else:
-            raise ValueError("incorrect value for LIMIT_TRANSCRIPT")
+        if limit_transcript > 0 and limit_transcript < 1:
+            length = len(transcripts) * limit_transcript
+            transcripts = transcripts[: int(length)]           
 
         # Summary of summaries: recursively chunk the list & summarise until len(summaries) == 1
         # Summarize each transcript
@@ -223,7 +222,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
             ModelParams.load().BULLETS,
             model,
             ModelParams.load().SUMMARY_LIMIT,
-            model_type=ModelParams.load().TYPE,
+            model_type=ModelParams.load().PROVIDER,
         )
 
         # Combine summaries in chunks and summarize them iteratively until a single summary is obtained
@@ -235,7 +234,7 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
                     ModelParams.load().BULLETS,
                     model,
                     ModelParams.load().SUMMARY_LIMIT,
-                    model_type=ModelParams.load().TYPE,
+                    model_type=ModelParams.load().PROVIDER,
                 )
             ]
 
@@ -249,8 +248,9 @@ def main(LIMIT_TRANSCRIPT: int | float | None, video_id: str):
 
         res = {k: v for k, v in data.items() if k in config.video_keys}
         msgs.append(res)
+        response_status = "VIDEO_SUMMARISED_SUCCESSFULLY"
 
-    return msgs
+    return msgs, response_status
 
 
 if __name__ == "__main__":

@@ -2,17 +2,17 @@ import configparser
 
 import yaml
 from fastapi import APIRouter, Depends, FastAPI
+from fastapi import status as fstatus
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from main import main
 from pydantic import BaseModel
 
 from video_summarizer.backend.configs import config
+from video_summarizer.backend.main import main
 from video_summarizer.backend.utils import auth
 from video_summarizer.backend.utils.utils import logger
 
 API_PREFIX = config.ApiSettings.load_settings().api_prefix
-LIMIT_TRANSCRIPT = config.ModelParams.load().LIMIT_TRANSCRIPT
 
 parser = configparser.ConfigParser()
 parser.read(config.ROOT_DIR / "pyproject.toml")
@@ -23,7 +23,7 @@ description = parser["tool.poetry"]["description"].replace('"', "")
 class VideoUrls(BaseModel):
     channels: list[str] = []
     videos: list[str] = []
-    limit_transcript: float | int | None = LIMIT_TRANSCRIPT
+    limit_transcript: float | int
     top_n: int = 2
     sort_by: str = "newest"
 
@@ -66,7 +66,7 @@ def fetch_video_summary(video_urls: VideoUrls):
     * channels: a list of channels to retrive a video(s) to summarise from based on `sort_by` and `top_n` parameters\n
     * video: a list of video urls to summarise\n
     * limit_transcript: portion of the video transcript to summarise
-    (None=full, <1 = partial, >=1 = number of chuncks)\n
+    (0 = full, 0-1 = partial, >=1 = number of chunks)\n
     * top_n: retrieves this number of video from a channel to summarise\n
     * sort_by: sorts `top_n`
 
@@ -79,23 +79,23 @@ def fetch_video_summary(video_urls: VideoUrls):
         responses = yaml.safe_load(f).get("responses")
 
     try:
-        summaries = main(
+        summaries, response_status = main(
             channels=video_urls.channels,
             videos=video_urls.videos,
-            LIMIT_TRANSCRIPT=video_urls.limit_transcript,
+            limit_transcript=video_urls.limit_transcript,
             sort_by=video_urls.sort_by,
             top_n=video_urls.top_n,
         )
 
         data = {"data": {"summaries": summaries}}
-        status = responses.get("SUCCESS")
-        status_code = config.statuses.SUCCESS.value
+        status = responses.get(response_status)
+        status_code = fstatus.HTTP_200_OK
 
     except Exception as e:
         logger.exception(e)
         data = {"summaries": None}
-        status = responses.get("ERROR")
-        status_code = config.statuses.ERROR.value
+        status = responses.get("VIDEO_NOT_SUMMARISED")
+        status_code = fstatus.HTTP_400_BAD_REQUEST
 
     return JSONResponse(content={**data, **status}, status_code=status_code)
 
