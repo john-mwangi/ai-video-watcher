@@ -9,7 +9,7 @@ COPY . .
 
 # CMD ls -la && pwd
 RUN apt-get update && \
-    apt-get install -y gcc && \
+    apt-get install -y gcc git && \
     pip install -r requirements.txt
 
 CMD bash -c "\
