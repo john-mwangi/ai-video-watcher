@@ -215,7 +215,7 @@ class PgVectorRAG:
     def __init__(self, host, port, username, password, database, video_id):
         self.uri = f"postgresql://{username}:{password}@{host}:{port}/{database}"
         self.engine = create_engine(self.uri)
-        self.collection_name = "transcripts"
+        self.collection_name = video_id
         self.embeddings = OpenAIEmbeddings()
         self.video_id = video_id
         
@@ -231,10 +231,25 @@ class PgVectorRAG:
         
         return vectorstore
 
-    def upsert_document(self, vectorstore: PGVector):
+    def upsert_document(self, vectorstore: PGVector, video_id: str) -> str:
         """Insert documents to the vectorstore"""
         
-        doc = get_document(self.video_id)
+        query = f"""
+        SELECT collection_id FROM langchain_pg_embedding 
+        WHERE collection_id = (
+            SELECT uuid FROM langchain_pg_collection 
+            WHERE name = '{video_id}')
+        LIMIT 1;
+        """
+        
+        with self.engine.connect() as conn:
+            res = conn.execute(text(query)).fetchone()
+            
+        if res:
+            logger.info(f"Documents for {video_id=} already in vectorstore")
+            return res.collection_id
+        
+        doc = get_document(video_id)
         transcript = doc.get("transcript")
         
         df = pd.DataFrame(transcript)
@@ -261,18 +276,32 @@ class PgVectorRAG:
         vectorstore.add_documents(documents=docs, ids=[doc.metadata["id"] for doc in docs])
         
         logger.info("Documents added to pgvector successfully")
+        
+        with self.engine.connect() as conn:
+            res = conn.execute(text(query)).fetchone()
+        
+        return res.collection_id
 
-    def query_vectorstore(self, query: str, k: int = 10):
+    def query_vectorstore(self, query: str, collection_id: str, k: int = 10):
         """Queries the vectors store to finding documents that are similar to an embedding"""
         
         embeds = self.embeddings.embed_query(query)
         
         query = f"""
-        SELECT * FROM langchain_pg_embedding ORDER BY embedding <=> '{embeds}' LIMIT {k};
+        SELECT * FROM langchain_pg_embedding 
+        WHERE collection_id = '{collection_id}'
+        ORDER BY embedding <=> '{embeds}' 
+        LIMIT {k};
         """
         
         with self.engine.connect() as conn:
             result = conn.execute(text(query)).fetchall()
+        
+        if len(result) == 0:
+            logger.error("No context was retrieved")
+            raise
+        
+        logger.info("Context was retrieved successfully")
         
         return [r.document for r in result]
     
@@ -304,7 +333,8 @@ def main(query: str, video_id: str, model: Provider, vectorstore: Provider, dele
             )
         
         vs = pgvector_rag.get_vectorstore()
-        context = pgvector_rag.query_vectorstore(query, vs)
+        collection_id = pgvector_rag.upsert_document(vectorstore=vs, video_id=video_id)
+        context = pgvector_rag.query_vectorstore(query, collection_id)
     
     logger.info(f"Connecting to {model}...")
     
