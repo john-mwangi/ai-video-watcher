@@ -1,3 +1,4 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/53K1dG3ottvY5uG9GM3fYs/QgW9U7Bm1SGtYjaQh21gjh/tree/main.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/circleci/53K1dG3ottvY5uG9GM3fYs/QgW9U7Bm1SGtYjaQh21gjh/tree/main)
 # Jasper, Video Summarizer
 ## About
 Jasper uses ChatGPT to summarise a YouTube video by providing either a YouTube channel or the video link.
