@@ -5,3 +5,4 @@ files
 *.gz
 .coverage
 dist
+.circleci
