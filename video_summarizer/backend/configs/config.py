@@ -9,6 +9,7 @@ params_path = ROOT_DIR / f"video_summarizer/backend/configs/params.yaml"
 WWW_DIR = ROOT_DIR / "video_summarizer/frontend/www"
 
 video_keys = ["video_id", "video_url", "video_title", "summary"]
+
 class ModelParams(BaseSettings):
     MODEL: str
     CHUNK_SIZE: int
@@ -52,13 +53,10 @@ prompt_template = """system: You are a helpful assistant who provides useful sum
     """
 
 augmented_prompt = """system: You are a helpful assistant. Please answer the
-    question using the context below:
+    question using the context below. Complement the context with your own knowledge.
     
-    Context: 
-    {context}
-    
-    user: {question}
-    assistant:
+    context: {context}
+    question: {question}
     """
 
 if __name__ == "__main__":
