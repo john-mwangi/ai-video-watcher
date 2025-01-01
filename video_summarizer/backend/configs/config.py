@@ -9,6 +9,7 @@ params_path = ROOT_DIR / f"video_summarizer/backend/configs/params.yaml"
 WWW_DIR = ROOT_DIR / "video_summarizer/frontend/www"
 
 video_keys = ["video_id", "video_url", "video_title", "summary"]
+
 class ModelParams(BaseSettings):
     MODEL: str
     CHUNK_SIZE: int
