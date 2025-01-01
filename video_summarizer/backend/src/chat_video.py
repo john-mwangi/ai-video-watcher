@@ -343,22 +343,15 @@ def main(query: str, video_id: str, model: Provider, vectorstore: Provider, dele
         res = model.predict(question=query, context=context)
         
     else:
-        prompt = f"""
-        Answer the following question using the provided context.
-        
-        question: {query}
-        
-        context: {context}
-        """
-        
         with open(config.params_path, mode="r") as f:
             ollama_params = yaml.safe_load(f).get("ollama_params")
         
         json_data = {
             "model": config.ModelParams.load().MODEL,
-            "prompt": prompt,
+            "prompt": augmented_prompt,
             **ollama_params
         }
+        
         response = requests.post(url=os.environ.get("_OLLAMA_ENDPOINT"), json=json_data)
         res = response.json()["response"]
 
