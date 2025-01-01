@@ -53,7 +53,7 @@ prompt_template = """system: You are a helpful assistant who provides useful sum
     """
 
 augmented_prompt = """system: You are a helpful assistant. Please answer the
-    question using the context below. Complement the context with your own knowledge.
+    question using the context below. Compliment the context with your own knowledge.
     
     context: {context}
     question: {question}

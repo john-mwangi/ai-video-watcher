@@ -5,7 +5,7 @@ import yaml
 from dotenv import load_dotenv
 from langchain.chains.llm import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from tqdm import tqdm
 
 from video_summarizer.backend.configs import config

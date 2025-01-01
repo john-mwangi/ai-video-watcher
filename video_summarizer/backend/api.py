@@ -16,8 +16,8 @@ API_PREFIX = config.ApiSettings.load_settings().api_prefix
 
 parser = configparser.ConfigParser()
 parser.read(config.ROOT_DIR / "pyproject.toml")
-version = parser["tool.poetry"]["version"].replace('"', "")
-description = parser["tool.poetry"]["description"].replace('"', "")
+version = parser["project"]["version"].replace('"', "")
+description = parser["project"]["description"].replace('"', "")
 
 
 class VideoUrls(BaseModel):
