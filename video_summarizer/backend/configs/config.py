@@ -52,13 +52,10 @@ prompt_template = """system: You are a helpful assistant who provides useful sum
     """
 
 augmented_prompt = """system: You are a helpful assistant. Please answer the
-    question using the context below:
+    question using the context below. Complement the context with you own knowledge.
     
-    Context: 
-    {context}
-    
-    user: {question}
-    assistant:
+    context: {context}
+    question: {question}
     """
 
 if __name__ == "__main__":
